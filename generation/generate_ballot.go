@@ -18,6 +18,8 @@ func GenerateBallots(manifest models.Manifest, amountOfBallots int, publicKey cr
 	return ballots
 }
 
+// generateBallot creates a single ballot that has range proofs for each selection along with a
+// range proof for the adherence to vote limits.
 func generateBallot(manifest models.Manifest, publicKey crypto.PublicKey) models.Ballot {
 	ballotContests := make([]models.BallotContest, len(manifest.Contests))
 
@@ -37,6 +39,8 @@ func generateBallot(manifest models.Manifest, publicKey crypto.PublicKey) models
 	return ballot
 }
 
+// generateSelectionsForContest creates all selections + range proofs for each selection for a given contest along with
+// a range proof for adhering to the vote limits.
 func generateSelectionsForContest(contest models.Contest, publicKey crypto.PublicKey) []models.BallotSelection {
 	// Creating ballot contest
 	selectionLimit := contest.SelectionLimit
@@ -54,69 +58,8 @@ func generateSelectionsForContest(contest models.Contest, publicKey crypto.Publi
 		epsilon := encryptionNonces[k]
 		alpha, beta := crypto.Encrypt(publicKey, m, epsilon)
 
-		// Generate random challenges
-		cpProofs := make([]models.ChaumPedersenProof, selectionLimit+1) // need R+1 proofs
-		challenges := getEncryptionNonces(selectionLimit + 1)           // need R+1 challenges
-		commitments := getEncryptionNonces(selectionLimit + 1)          // need R+1 commitments
-
-		// Generate range proof of this encryption
-		for j := 0; j <= selectionLimit; j++ {
-			u := commitments[j]
-			c := *challenges[j]
-
-			var a, b big.Int
-			a.Exp(publicKey.G, u, publicKey.P)
-			if m == j {
-				b.Exp(publicKey.K, u, publicKey.P)
-			} else {
-				var cMul big.Int
-				t := new(big.Int)
-
-				t = t.Add(u, cMul.Mul(big.NewInt(int64(selectionLimit-j)), &c))
-				t.Mod(t, publicKey.Q)
-				b.Exp(publicKey.K, t, publicKey.P)
-			}
-
-			// Calculating the response
-			var v big.Int
-			v.Sub(u, epsilon.Mul(epsilon, &c))
-			v.Mod(&v, publicKey.Q)
-
-			// Filling the values in we have calculated (note that the c for m == j has to be replaced later)
-			cpProofs[j] = models.ChaumPedersenProof{
-				Challenge:     c,
-				ProofPad:      a,
-				ProofData:     b,
-				ProofResponse: v,
-			}
-		}
-
-		// Calculating "true" claim proof
-		c := crypto.HMAC(*publicKey.K, 0x21, publicKey.K, alpha, beta)
-		cl := new(big.Int)
-		cl = cl.Set(c)
-		for j := 0; j <= selectionLimit; j++ {
-			if m != j {
-				cl.Sub(cl, challenges[j])
-				cl.Mod(cl, publicKey.Q)
-			}
-		}
-		var v big.Int
-		v.Sub(commitments[m], epsilon.Mul(epsilon, c))
-		v.Mod(&v, publicKey.Q)
-		cpProofs[m] = models.ChaumPedersenProof{
-			Challenge:     *c,
-			ProofPad:      cpProofs[m].ProofPad,
-			ProofData:     cpProofs[m].ProofData,
-			ProofResponse: v,
-		}
-
-		// Saving all the proofs into range proof struct
-		rangeProof := models.RangeProof{
-			Challenge:  *c,
-			Proofs:     cpProofs,
-			RangeLimit: selectionLimit,
-		}
+		// Generating range proof based on El Gamal encryption, the vote, and the selection limit
+		rangeProof := generateRangeProofFromEncryptionAndNonce(*alpha, *beta, *epsilon, publicKey, selectionLimit, m)
 
 		// Creating ballot selection
 		ballotSelection := models.BallotSelection{
