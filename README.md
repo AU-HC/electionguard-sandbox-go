@@ -1,3 +1,4 @@
 - [ ] fix hash in range proof?
 - [ ] Should probably test encrypt/decrypt
+- [ ] implement efficient way to verify checks
 - [ ] implement verification 6
