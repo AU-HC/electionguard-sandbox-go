@@ -9,11 +9,10 @@ type Ballot struct {
 }
 
 type BallotContest struct {
-	ObjectId               string
-	CryptoHash             big.Int
-	BallotSelections       []BallotSelection
-	Proof                  RangeProof
-	CiphertextAccumulation Ciphertext
+	ObjectId         string
+	CryptoHash       big.Int
+	BallotSelections []BallotSelection
+	Proof            RangeProof
 }
 
 type BallotSelection struct {

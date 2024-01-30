@@ -9,8 +9,8 @@ import (
 func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publicKey crypto.PublicKey, selectionLimit, m int) models.RangeProof {
 	// Generate random challenges
 	cpProofs := make([]models.ChaumPedersenProof, selectionLimit+1) // need R+1 proofs
-	challenges := getEncryptionNonces(selectionLimit + 1)           // need R+1 challenges
-	commitments := getEncryptionNonces(selectionLimit + 1)          // need R+1 commitments
+	challenges := getRandomNumbersModQ(selectionLimit + 1)          // need R+1 challenges
+	commitments := getRandomNumbersModQ(selectionLimit + 1)         // need R+1 commitments
 
 	// Generate range proof of this encryption
 	for j := 0; j <= selectionLimit; j++ {

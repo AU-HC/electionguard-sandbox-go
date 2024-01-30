@@ -24,39 +24,43 @@ func generateBallot(manifest models.Manifest, publicKey crypto.PublicKey) models
 	ballotContests := make([]models.BallotContest, len(manifest.Contests))
 
 	for i, contest := range manifest.Contests {
-		ballotSelectionsForContest := generateSelectionsForContest(contest, publicKey)
-		ballotContest := models.BallotContest{
-			BallotSelections:       ballotSelectionsForContest,
-			Proof:                  models.RangeProof{},
-			CiphertextAccumulation: models.Ciphertext{},
-		}
-		ballotContests[i] = ballotContest
+		ballotContests[i] = generateBallotContest(contest, publicKey)
 	}
 
-	ballot := models.Ballot{
-		Contests: ballotContests,
-	}
+	ballot := models.Ballot{Contests: ballotContests}
 	return ballot
 }
 
-// generateSelectionsForContest creates all selections + range proofs for each selection for a given contest along with
+// generateBallotContest creates all selections + range proofs for each selection for a given contest along with
 // a range proof for adhering to the vote limits.
-func generateSelectionsForContest(contest models.Contest, publicKey crypto.PublicKey) []models.BallotSelection {
-	// Creating ballot contest
+func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) models.BallotContest {
 	selectionLimit := contest.SelectionLimit
 
 	// Creating list of selections for ballot/contest combination
 	amountOfSelections := len(contest.Selections)
 	selections := make([]models.BallotSelection, amountOfSelections)
 
-	encryptionNonces := getEncryptionNonces(amountOfSelections)
+	// Nonces and encryption values that are valid (i.e. within the selection limit)
+	encryptionNonces := getRandomNumbersModQ(amountOfSelections)
 	encryptionValues := getRandomVotes(amountOfSelections, selectionLimit)
+
+	alphaHat := big.NewInt(1)
+	betaHat := big.NewInt(1)
+	epsilonHat := big.NewInt(1)
 
 	for k, selection := range contest.Selections {
 		// Get (message, nonce) and generate El Gamal encryption
 		m := encryptionValues[k]
 		epsilon := encryptionNonces[k]
 		alpha, beta := crypto.Encrypt(publicKey, m, epsilon)
+
+		// Calculating the product of all encryptions / sum of nonces
+		alphaHat.Mul(alphaHat, alpha)
+		alphaHat.Mod(alphaHat, publicKey.P)
+		betaHat.Mul(betaHat, beta)
+		betaHat.Mod(betaHat, publicKey.P)
+		epsilonHat.Add(epsilonHat, beta)
+		epsilonHat.Mod(epsilonHat, publicKey.P)
 
 		// Generating range proof based on El Gamal encryption, the vote, and the selection limit
 		rangeProof := generateRangeProofFromEncryptionAndNonce(*alpha, *beta, *epsilon, publicKey, selectionLimit, m)
@@ -72,10 +76,16 @@ func generateSelectionsForContest(contest models.Contest, publicKey crypto.Publi
 		selections[k] = ballotSelection
 	}
 
-	// Generate vote limit range proof
-	// ...
+	// Generate vote limit range proof (adherence to vote limit)
+	voteAdherenceRangeProof := generateRangeProofFromEncryptionAndNonce(*alphaHat, *betaHat, *epsilonHat, publicKey, selectionLimit, selectionLimit) // note that we always encrypt "selection limit" thus no undervotes is performed
 
-	return selections
+	// Creating ballot contest
+	ballotContest := models.BallotContest{
+		BallotSelections: selections,
+		Proof:            voteAdherenceRangeProof,
+	}
+
+	return ballotContest
 }
 
 func getRandomVotes(amountOfSelections int, limit int) []int {
@@ -91,7 +101,7 @@ func getRandomVotes(amountOfSelections int, limit int) []int {
 	return votes
 }
 
-func getEncryptionNonces(n int) []*big.Int {
+func getRandomNumbersModQ(n int) []*big.Int {
 	nonces := make([]*big.Int, n)
 
 	for i := 0; i < n; i++ {
