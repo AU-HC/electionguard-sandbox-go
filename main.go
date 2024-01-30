@@ -10,7 +10,7 @@ import (
 func main() {
 	// Getting path to manifest file
 	pathPtr := flag.String("path", "", "path to manifest file used to generate ballots.")
-	amountOfBallotsPtr := flag.Int("number", 10, "amount of ballots to generate and verify.")
+	amountOfBallotsPtr := flag.Int("number", 1, "amount of ballots to generate and verify.")
 	flag.Parse()
 
 	// Loading manifest and generating ballots based on manifest

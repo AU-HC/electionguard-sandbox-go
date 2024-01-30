@@ -13,6 +13,7 @@ var nilType = reflect.TypeOf(nil)
 var stringType = reflect.TypeOf("")
 var intType = reflect.TypeOf(1)
 var bigIntType = reflect.TypeOf(big.Int{})
+var bigIntPointerType = reflect.TypeOf(&big.Int{})
 var fileType = reflect.TypeOf(([]byte)(nil))
 
 func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
@@ -45,8 +46,11 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 
 		case bigIntType:
 			bigInt := x.(big.Int)
-			fmt.Println("Length of bigint: (should be 32 or 512)", len(bigInt.Bytes()))
 			toBeHashed = bigInt.Bytes()
+
+		case bigIntPointerType:
+			bigIntPointer := x.(*big.Int)
+			toBeHashed = bigIntPointer.Bytes()
 
 		case fileType:
 			file, _ := x.([]byte)

@@ -8,7 +8,7 @@ import (
 // taken from: https://github.com/AU-HC/elliptic-curve-benchmark-go/blob/master/elgamal/elgamal.go
 
 type PublicKey struct {
-	G, P, K *big.Int
+	G, P, K, Q *big.Int
 }
 
 type SecretKey struct {
@@ -22,6 +22,7 @@ func GenerateKeyPair() (PublicKey, SecretKey) {
 
 	g := constants.GetG()
 	p := constants.GetP()
+	q := constants.GetQ()
 	s := GenerateRandomModQ()
 
 	secretKey.G = g
@@ -30,19 +31,20 @@ func GenerateKeyPair() (PublicKey, SecretKey) {
 
 	publicKey.G = g
 	publicKey.P = p
+	publicKey.Q = q
 	publicKey.K = big.NewInt(0).Exp(publicKey.G, s, publicKey.P)
 
 	return publicKey, secretKey
 }
 
-func Encrypt(publicKey PublicKey, m, epsilon *big.Int) (*big.Int, *big.Int) {
+func Encrypt(publicKey PublicKey, m int, epsilon *big.Int) (*big.Int, *big.Int) {
 	var alpha big.Int
 	alpha.Exp(publicKey.G, epsilon, publicKey.P) // g^\epsilon mod p
 
 	var kM big.Int
 	var kR big.Int
-	kM.Exp(publicKey.K, m, publicKey.P)       // K^m mod p
-	kR.Exp(publicKey.K, epsilon, publicKey.P) // K^\epsilon mod p
+	kM.Exp(publicKey.K, big.NewInt(int64(m)), publicKey.P) // K^m mod p
+	kR.Exp(publicKey.K, epsilon, publicKey.P)              // K^\epsilon mod p
 
 	var beta big.Int
 	beta.Mul(&kM, &kR)           // K^m K^\epsilon

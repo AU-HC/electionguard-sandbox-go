@@ -18,8 +18,8 @@ type BallotContest struct {
 
 type BallotSelection struct {
 	ObjectId   string
-	Proof      RangeProof
 	Ciphertext Ciphertext
+	Proof      RangeProof
 }
 
 type RangeProof struct {
