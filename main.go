@@ -3,8 +3,8 @@ package main
 import (
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/generation"
+	"electionguard-sandbox-go/verification"
 	"flag"
-	"fmt"
 )
 
 func main() {
@@ -18,7 +18,6 @@ func main() {
 	electionPublicKey, _ := crypto.GenerateKeyPair()
 	ballots := generation.GenerateBallots(manifest, *amountOfBallotsPtr, electionPublicKey)
 
-	// "Verification" of ballots ...
-
-	fmt.Println(ballots)
+	// Sandbox "verification" of ballots
+	verification.VerifyStep5(ballots, electionPublicKey)
 }

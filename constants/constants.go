@@ -23,7 +23,7 @@ func GetG() *big.Int {
 	return g
 }
 
-func GetExtendedBaseHash() *big.Int {
+func GetExtendedBaseHash() big.Int {
 	hash, _ := new(big.Int).SetString(extendedBaseHash, 16)
-	return hash
+	return *hash
 }

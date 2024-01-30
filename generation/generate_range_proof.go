@@ -46,7 +46,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	}
 
 	// Calculating "true" claim proof
-	c := crypto.HMAC(*constants.GetExtendedBaseHash(), 0x21, publicKey.K, alpha, beta)
+	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, publicKey.K, alpha, beta)
 	cl := new(big.Int)
 	cl = cl.Set(c)
 
@@ -61,7 +61,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	v.Sub(commitments[m], epsilon.Mul(&epsilon, c))
 	v.Mod(&v, publicKey.Q)
 	cpProofs[m] = models.ChaumPedersenProof{
-		Challenge:     *c,
+		Challenge:     *cl,
 		ProofPad:      cpProofs[m].ProofPad,
 		ProofData:     cpProofs[m].ProofData,
 		ProofResponse: v,

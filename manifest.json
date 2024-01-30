@@ -2,7 +2,7 @@
   "contests" : [
     {
       "name": "contest1",
-      "ContestSelectionLimit": 1,
+      "contestSelectionLimit": 1,
       "selectionLimit": 1,
       "selections": [
         {
@@ -15,7 +15,7 @@
     },
     {
       "name": "contest2",
-      "ContestSelectionLimit": 4,
+      "contestSelectionLimit": 4,
       "selectionLimit": 2,
       "selections": [
         {
