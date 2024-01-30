@@ -1,5 +1,6 @@
 - [ ] fix hash in range proof?
 - [ ] implement efficient way to verify checks
+- [ ] quick refactor of step 5
 - [ ] implement verification 6
 - [ ] Should probably test encrypt/decrypt
 - [ ] maybe move modular arithmetic to another package?
