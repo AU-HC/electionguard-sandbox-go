@@ -3,6 +3,7 @@ package crypto
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"electionguard-sandbox-go/models"
 	"encoding/binary"
 	"math/big"
 	"reflect"
@@ -14,6 +15,7 @@ var intType = reflect.TypeOf(1)
 var bigIntType = reflect.TypeOf(big.Int{})
 var bigIntPointerType = reflect.TypeOf(&big.Int{})
 var fileType = reflect.TypeOf(([]byte)(nil))
+var chaumPedersenProofType = reflect.TypeOf(models.ChaumPedersenProof{})
 
 func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 	mac := hmac.New(sha256.New, key.Bytes())
@@ -57,6 +59,11 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 			pad := make([]byte, 4)
 			binary.BigEndian.PutUint32(pad, uint32(len(file)))
 			toBeHashed = append(pad, file...)
+
+		case chaumPedersenProofType:
+			chaumPedersenProof := x.(models.ChaumPedersenProof)
+			mac.Write(chaumPedersenProof.ProofPad.Bytes())
+			toBeHashed = chaumPedersenProof.ProofData.Bytes()
 
 		default:
 			panic("unknown type for hmac")

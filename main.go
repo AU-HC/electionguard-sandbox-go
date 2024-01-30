@@ -5,6 +5,7 @@ import (
 	"electionguard-sandbox-go/generation"
 	"electionguard-sandbox-go/verification"
 	"flag"
+	"fmt"
 )
 
 func main() {
@@ -20,4 +21,7 @@ func main() {
 
 	// Sandbox "verification" of ballots
 	verification.VerifyStep5(ballots, electionPublicKey)
+	verification.VerifyStep6(ballots, electionPublicKey)
+
+	fmt.Println("We will see you in person.")
 }

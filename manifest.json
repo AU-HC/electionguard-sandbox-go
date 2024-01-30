@@ -15,8 +15,8 @@
     },
     {
       "name": "contest2",
-      "contestSelectionLimit": 4,
-      "selectionLimit": 2,
+      "contestSelectionLimit": 6,
+      "selectionLimit": 4,
       "selections": [
         {
           "name": "selection2-1"

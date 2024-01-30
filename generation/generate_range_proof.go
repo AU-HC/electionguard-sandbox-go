@@ -16,55 +16,48 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	// Generate range proof of this encryption
 	for j := 0; j <= selectionLimit; j++ {
 		u := commitments[j]
-		c := *challenges[j]
+		cj := *challenges[j]
 
-		var a, b big.Int
-		a.Exp(publicKey.G, u, publicKey.P)
-		if m == j {
-			b.Exp(publicKey.K, u, publicKey.P)
-		} else {
-			var cMul big.Int
-			t := new(big.Int)
-
-			t = t.Add(u, cMul.Mul(big.NewInt(int64(selectionLimit-j)), &c))
-			t.Mod(t, publicKey.Q)
-			b.Exp(publicKey.K, t, publicKey.P)
-		}
+		a := powP(publicKey.G, u)
+		b := calculateBCommitment(m, j, publicKey, *u, cj)
 
 		// Calculating the response
-		var v big.Int
-		v.Sub(u, epsilon.Mul(&epsilon, &c))
-		v.Mod(&v, publicKey.Q)
+		v := subQ(u, mulQ(&epsilon, &cj))
 
 		// Filling the values in we have calculated (note that the c for m == j has to be replaced later)
 		cpProofs[j] = models.ChaumPedersenProof{
-			Challenge:     c,
-			ProofPad:      a,
-			ProofData:     b,
-			ProofResponse: v,
+			Challenge:     cj,
+			ProofPad:      *a,
+			ProofData:     *b,
+			ProofResponse: *v,
 		}
 	}
 
 	// Calculating "true" claim proof
-	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, publicKey.K, alpha, beta)
+	xd := []interface{}{publicKey.K, alpha, beta}
+	for i := 0; i < len(cpProofs); i++ {
+		xd = append(xd, cpProofs[i].ProofPad)
+		xd = append(xd, cpProofs[i].ProofData)
+	}
+
+	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, xd...)
 	cl := new(big.Int)
 	cl = cl.Set(c)
 
 	for j, cpProof := range cpProofs {
 		if m != j {
-			cl.Sub(cl, &cpProof.Challenge)
-			cl.Mod(cl, publicKey.Q)
+			cl = subQ(cl, &cpProof.Challenge)
 		}
 	}
 
-	var v big.Int
-	v.Sub(commitments[m], epsilon.Mul(&epsilon, c))
-	v.Mod(&v, publicKey.Q)
+	var v *big.Int
+	v = subQ(commitments[m], mulQ(&epsilon, cl))
+
 	cpProofs[m] = models.ChaumPedersenProof{
 		Challenge:     *cl,
 		ProofPad:      cpProofs[m].ProofPad,
 		ProofData:     cpProofs[m].ProofData,
-		ProofResponse: v,
+		ProofResponse: *v,
 	}
 
 	// Saving all the proofs into range proof struct
@@ -75,4 +68,56 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	}
 
 	return rangeProof
+}
+
+func calculateBCommitment(m, j int, publicKey crypto.PublicKey, u, c big.Int) *big.Int {
+	if m == j {
+		return powP(publicKey.K, &u)
+	} else {
+		t := addQ(&u, mulQ(big.NewInt(int64(m-j)), &c))
+		return powP(publicKey.K, t)
+	}
+}
+
+func addQ(a, b *big.Int) *big.Int {
+	var result big.Int
+	q := constants.GetQ()
+
+	result.Add(b, a)
+	result.Mod(&result, q)
+
+	return &result
+}
+
+func subQ(a, b *big.Int) *big.Int {
+	var result big.Int
+	q := constants.GetQ()
+
+	result.Sub(a, b)
+	result.Mod(&result, q)
+
+	return &result
+}
+
+func mulQ(a, b *big.Int) *big.Int {
+	var result big.Int
+	q := constants.GetQ()
+
+	modOfA := a.Mod(a, q)
+	modOfB := b.Mod(b, q)
+
+	// Multiply the two numbers mod q
+	result.Mul(modOfA, modOfB)
+	result.Mod(&result, q)
+
+	return &result
+}
+
+func powP(b, e *big.Int) *big.Int {
+	var result big.Int
+	p := constants.GetP()
+
+	result.Exp(b, e, p)
+
+	return &result
 }

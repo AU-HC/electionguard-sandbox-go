@@ -1,6 +1,7 @@
 package generation
 
 import (
+	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
 	"math/big"
@@ -47,7 +48,7 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 
 	alphaHat := big.NewInt(1)
 	betaHat := big.NewInt(1)
-	epsilonHat := big.NewInt(1)
+	epsilonHat := big.NewInt(0)
 
 	for k, selection := range contest.Selections {
 		// Get (message, nonce) and generate El Gamal encryption
@@ -56,12 +57,9 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 		alpha, beta := crypto.Encrypt(publicKey, m, epsilon)
 
 		// Calculating the product of all encryptions / sum of nonces
-		alphaHat.Mul(alphaHat, alpha)
-		alphaHat.Mod(alphaHat, publicKey.P)
-		betaHat.Mul(betaHat, beta)
-		betaHat.Mod(betaHat, publicKey.P)
-		epsilonHat.Add(epsilonHat, beta)
-		epsilonHat.Mod(epsilonHat, publicKey.P)
+		alphaHat = mulP(alphaHat, alpha)
+		betaHat = mulP(betaHat, beta)
+		epsilonHat = addQ(epsilonHat, epsilon)
 
 		// Generating range proof based on El Gamal encryption, the vote, and the selection limit
 		rangeProof := generateRangeProofFromEncryptionAndNonce(*alpha, *beta, *epsilon, publicKey, selectionLimit, m)
@@ -78,7 +76,11 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 	}
 
 	// Generate vote limit range proof (adherence to vote limit)
-	voteAdherenceRangeProof := generateRangeProofFromEncryptionAndNonce(*alphaHat, *betaHat, *epsilonHat, publicKey, contestSelectionLimit, selectionLimit) // note that we always encrypt "selection limit" thus no undervotes is performed
+	encryptionValuesSum := 0
+	for _, value := range encryptionValues {
+		encryptionValuesSum += value
+	}
+	voteAdherenceRangeProof := generateRangeProofFromEncryptionAndNonce(*alphaHat, *betaHat, *epsilonHat, publicKey, contestSelectionLimit, encryptionValuesSum) // note that we always encrypt "selection limit" thus no undervotes is performed
 
 	// Creating ballot contest
 	ballotContest := models.BallotContest{
@@ -114,4 +116,18 @@ func getRandomNumbersModQ(n int) []*big.Int {
 	}
 
 	return nonces
+}
+
+func mulP(a, b *big.Int) *big.Int {
+	var result big.Int
+	p := constants.GetP()
+
+	modOfA := a.Mod(a, p)
+	modOfB := b.Mod(b, p)
+
+	// Multiply the two numbers mod p
+	result.Mul(modOfA, modOfB)
+	result.Mod(&result, p)
+
+	return &result
 }
