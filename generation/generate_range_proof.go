@@ -1,6 +1,7 @@
 package generation
 
 import (
+	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
 	"math/big"
@@ -45,7 +46,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	}
 
 	// Calculating "true" claim proof
-	c := crypto.HMAC(*publicKey.K, 0x21, publicKey.K, alpha, beta)
+	c := crypto.HMAC(*constants.GetExtendedBaseHash(), 0x21, publicKey.K, alpha, beta)
 	cl := new(big.Int)
 	cl = cl.Set(c)
 

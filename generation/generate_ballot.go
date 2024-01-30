@@ -35,6 +35,7 @@ func generateBallot(manifest models.Manifest, publicKey crypto.PublicKey) models
 // a range proof for adhering to the vote limits.
 func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) models.BallotContest {
 	selectionLimit := contest.SelectionLimit
+	contestSelectionLimit := contest.ContestSelectionLimit
 
 	// Creating list of selections for ballot/contest combination
 	amountOfSelections := len(contest.Selections)
@@ -42,7 +43,7 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 
 	// Nonces and encryption values that are valid (i.e. within the selection limit)
 	encryptionNonces := getRandomNumbersModQ(amountOfSelections)
-	encryptionValues := getRandomVotes(amountOfSelections, selectionLimit)
+	encryptionValues := getRandomVotes(amountOfSelections, selectionLimit, contestSelectionLimit)
 
 	alphaHat := big.NewInt(1)
 	betaHat := big.NewInt(1)
@@ -77,7 +78,7 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 	}
 
 	// Generate vote limit range proof (adherence to vote limit)
-	voteAdherenceRangeProof := generateRangeProofFromEncryptionAndNonce(*alphaHat, *betaHat, *epsilonHat, publicKey, selectionLimit, selectionLimit) // note that we always encrypt "selection limit" thus no undervotes is performed
+	voteAdherenceRangeProof := generateRangeProofFromEncryptionAndNonce(*alphaHat, *betaHat, *epsilonHat, publicKey, contestSelectionLimit, selectionLimit) // note that we always encrypt "selection limit" thus no undervotes is performed
 
 	// Creating ballot contest
 	ballotContest := models.BallotContest{
@@ -88,12 +89,16 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 	return ballotContest
 }
 
-func getRandomVotes(amountOfSelections int, limit int) []int {
+func getRandomVotes(amountOfSelections, selectionLimit, contestSelectionLimit int) []int {
 	votes := make([]int, amountOfSelections)
 	sumOfVotes := 0
 
 	for i := 0; i < amountOfSelections; i++ {
-		vote := rand.Intn(limit - sumOfVotes)
+		vote := rand.Intn(selectionLimit + 1)
+		for vote+sumOfVotes > contestSelectionLimit {
+			vote = rand.Intn(selectionLimit + 1)
+		}
+
 		votes[i] = vote
 		sumOfVotes += vote
 	}

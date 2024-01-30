@@ -5,9 +5,10 @@ type Manifest struct {
 }
 
 type Contest struct {
-	Name           string      `json:"name"`
-	SelectionLimit int         `json:"selectionLimit"`
-	Selections     []Selection `json:"selections"`
+	Name                  string      `json:"name"`
+	SelectionLimit        int         `json:"selectionLimit"`
+	ContestSelectionLimit int         `json:"contestSelectionLimit"`
+	Selections            []Selection `json:"selections"`
 }
 
 type Selection struct {

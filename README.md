@@ -1,2 +1,4 @@
-- [ ] Make Encrypt take an int + nonce (instead of big.Int and generating nonce itself)
+- [ ] fix hash in range proof?
 - [ ] Should probably test encrypt/decrypt
+- [ ] implement verification 5
+- [ ] implement verification 6

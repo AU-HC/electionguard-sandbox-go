@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/binary"
-	"fmt"
 	"math/big"
 	"reflect"
 )
@@ -58,8 +57,6 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 			pad := make([]byte, 4)
 			binary.BigEndian.PutUint32(pad, uint32(len(file)))
 			toBeHashed = append(pad, file...)
-
-			fmt.Println("length of manifest: ", len(file))
 
 		default:
 			panic("unknown type for hmac")
