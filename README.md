@@ -1,0 +1,2 @@
+- [ ] Make Encrypt take an int + nonce (instead of big.Int and generating nonce itself)
+- [ ] Should probably test encrypt/decrypt

@@ -1,0 +1,34 @@
+{
+  "contests" : [
+    {
+      "name": "contest1",
+      "selectionLimit": 1,
+      "selections": [
+        {
+          "name": "selection1-1"
+        },
+        {
+          "name": "selection1-2"
+        }
+      ]
+    },
+    {
+      "name": "contest2",
+      "selectionLimit": 3,
+      "selections": [
+        {
+          "name": "selection2-1"
+        },
+        {
+          "name": "selection2-2"
+        },
+        {
+          "name": "selection2-2"
+        },
+        {
+          "name": "selection2-2"
+        }
+      ]
+    }
+  ]
+}
