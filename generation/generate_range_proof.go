@@ -35,13 +35,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	}
 
 	// Calculating "true" claim proof
-	xd := []interface{}{publicKey.K, alpha, beta}
-	for i := 0; i < len(cpProofs); i++ {
-		xd = append(xd, cpProofs[i].ProofPad)
-		xd = append(xd, cpProofs[i].ProofData)
-	}
-
-	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, xd...)
+	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, calculateHashArray(publicKey, alpha, beta, cpProofs)...)
 	cl := new(big.Int)
 	cl = cl.Set(c)
 
@@ -78,4 +72,14 @@ func calculateBCommitment(m, j int, publicKey crypto.PublicKey, u, c big.Int) *b
 		t := mod.AddQ(&u, mod.MulQ(big.NewInt(int64(m-j)), &c))
 		return mod.PowP(publicKey.K, t)
 	}
+}
+
+func calculateHashArray(publicKey crypto.PublicKey, alpha, beta big.Int, cpProofs []models.ChaumPedersenProof) []interface{} {
+	hashArray := []interface{}{publicKey.K, alpha, beta}
+	for i := 0; i < len(cpProofs); i++ {
+		hashArray = append(hashArray, cpProofs[i].ProofPad)
+		hashArray = append(hashArray, cpProofs[i].ProofData)
+	}
+
+	return hashArray
 }
