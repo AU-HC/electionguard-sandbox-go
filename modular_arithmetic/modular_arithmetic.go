@@ -1,4 +1,4 @@
-package verification
+package modular_arithmetic
 
 import (
 	"electionguard-sandbox-go/constants"
@@ -7,7 +7,7 @@ import (
 
 // taken from: https://github.com/AU-HC/electionguard-verifier-go/blob/master/core/arithmatic.go
 
-func mulP(a, b *big.Int) *big.Int {
+func MulP(a, b *big.Int) *big.Int {
 	var result big.Int
 	p := constants.GetP()
 
@@ -21,7 +21,7 @@ func mulP(a, b *big.Int) *big.Int {
 	return &result
 }
 
-func mulQ(a, b *big.Int) *big.Int {
+func MulQ(a, b *big.Int) *big.Int {
 	var result big.Int
 	q := constants.GetQ()
 
@@ -35,7 +35,7 @@ func mulQ(a, b *big.Int) *big.Int {
 	return &result
 }
 
-func powP(b, e *big.Int) *big.Int {
+func PowP(b, e *big.Int) *big.Int {
 	var result big.Int
 	p := constants.GetP()
 
@@ -44,7 +44,7 @@ func powP(b, e *big.Int) *big.Int {
 	return &result
 }
 
-func addQ(a, b *big.Int) *big.Int {
+func AddQ(a, b *big.Int) *big.Int {
 	var result big.Int
 	q := constants.GetQ()
 
@@ -54,7 +54,7 @@ func addQ(a, b *big.Int) *big.Int {
 	return &result
 }
 
-func subQ(a, b *big.Int) *big.Int {
+func SubQ(a, b *big.Int) *big.Int {
 	var result big.Int
 	q := constants.GetQ()
 
@@ -64,7 +64,15 @@ func subQ(a, b *big.Int) *big.Int {
 	return &result
 }
 
-func isValidResidue(a big.Int) bool {
+func ModQ(a *big.Int) *big.Int {
+	var result big.Int
+	q := constants.GetQ()
+
+	result.Mod(a, q)
+	return &result
+}
+
+func IsValidResidue(a big.Int) bool {
 	// Checking the value is in range
 	p := constants.GetP()
 	q := constants.GetQ()
@@ -75,12 +83,12 @@ func isValidResidue(a big.Int) bool {
 	valueIsSmallerThanP := p.Cmp(&a) == 1
 	valueIsInRange := valueIsSmallerThanP && valueIsAboveOrEqualToZero // a is in [0, P)
 
-	validResidue := powP(&a, q).Cmp(one) == 0 // a^q mod p == 1
+	validResidue := PowP(&a, q).Cmp(one) == 0 // a^q mod p == 1
 
 	return valueIsInRange && validResidue
 }
 
-func isInRange(a big.Int) bool {
+func IsInRange(a big.Int) bool {
 	q := constants.GetQ()
 	zero := big.NewInt(0)
 

@@ -1,3 +1,2 @@
-- [ ] implement efficient way to verify checks
+- [ ] Refactor the way the array of big.Ints is created when creating the hashed challenge
 - [ ] Should probably test encrypt/decrypt
-- [ ] maybe move modular arithmetic to another package?

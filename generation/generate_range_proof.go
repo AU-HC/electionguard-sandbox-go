@@ -4,6 +4,7 @@ import (
 	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
+	mod "electionguard-sandbox-go/modular_arithmetic"
 	"math/big"
 )
 
@@ -18,11 +19,11 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 		u := commitments[j]
 		cj := *challenges[j]
 
-		a := powP(publicKey.G, u)
+		a := mod.PowP(publicKey.G, u)
 		b := calculateBCommitment(m, j, publicKey, *u, cj)
 
 		// Calculating the response
-		v := subQ(u, mulQ(&epsilon, &cj))
+		v := mod.SubQ(u, mod.MulQ(&epsilon, &cj))
 
 		// Filling the values in we have calculated (note that the c for m == j has to be replaced later)
 		cpProofs[j] = models.ChaumPedersenProof{
@@ -46,12 +47,12 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 
 	for j, cpProof := range cpProofs {
 		if m != j {
-			cl = subQ(cl, &cpProof.Challenge)
+			cl = mod.SubQ(cl, &cpProof.Challenge)
 		}
 	}
 
 	var v *big.Int
-	v = subQ(commitments[m], mulQ(&epsilon, cl))
+	v = mod.SubQ(commitments[m], mod.MulQ(&epsilon, cl))
 
 	cpProofs[m] = models.ChaumPedersenProof{
 		Challenge:     *cl,
@@ -72,52 +73,9 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 
 func calculateBCommitment(m, j int, publicKey crypto.PublicKey, u, c big.Int) *big.Int {
 	if m == j {
-		return powP(publicKey.K, &u)
+		return mod.PowP(publicKey.K, &u)
 	} else {
-		t := addQ(&u, mulQ(big.NewInt(int64(m-j)), &c))
-		return powP(publicKey.K, t)
+		t := mod.AddQ(&u, mod.MulQ(big.NewInt(int64(m-j)), &c))
+		return mod.PowP(publicKey.K, t)
 	}
-}
-
-func addQ(a, b *big.Int) *big.Int {
-	var result big.Int
-	q := constants.GetQ()
-
-	result.Add(b, a)
-	result.Mod(&result, q)
-
-	return &result
-}
-
-func subQ(a, b *big.Int) *big.Int {
-	var result big.Int
-	q := constants.GetQ()
-
-	result.Sub(a, b)
-	result.Mod(&result, q)
-
-	return &result
-}
-
-func mulQ(a, b *big.Int) *big.Int {
-	var result big.Int
-	q := constants.GetQ()
-
-	modOfA := a.Mod(a, q)
-	modOfB := b.Mod(b, q)
-
-	// Multiply the two numbers mod q
-	result.Mul(modOfA, modOfB)
-	result.Mod(&result, q)
-
-	return &result
-}
-
-func powP(b, e *big.Int) *big.Int {
-	var result big.Int
-	p := constants.GetP()
-
-	result.Exp(b, e, p)
-
-	return &result
 }

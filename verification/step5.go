@@ -4,7 +4,7 @@ import (
 	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
-	"fmt"
+	mod "electionguard-sandbox-go/modular_arithmetic"
 	"math/big"
 )
 
@@ -18,47 +18,30 @@ func VerifyStep5(ballots []models.Ballot, publicKey crypto.PublicKey) {
 				alpha := selection.Ciphertext.Pad
 				beta := selection.Ciphertext.Data
 
-				checkAOne := isValidResidue(alpha)
-				checkATwo := isValidResidue(beta)
-
 				toBeHashed := []interface{}{*publicKey.K, selection.Ciphertext.Pad, selection.Ciphertext.Data}
 				computedC := big.NewInt(0)
 				for j, proof := range selection.Proof.Proofs {
 					cj := proof.Challenge
-					computedC = addQ(computedC, &cj)
+					computedC = mod.AddQ(computedC, &cj)
 
 					vj := proof.ProofResponse
-					wj := subQ(&vj, mulQ(big.NewInt(int64(j)), &cj))
+					wj := mod.SubQ(&vj, mod.MulQ(big.NewInt(int64(j)), &cj))
 
-					aj := mulP(powP(g, &vj), powP(&alpha, &cj))
-					bj := mulP(powP(k, wj), powP(&beta, &cj))
+					aj := mod.MulP(mod.PowP(g, &vj), mod.PowP(&alpha, &cj))
+					bj := mod.MulP(mod.PowP(k, wj), mod.PowP(&beta, &cj))
 
 					toBeHashed = append(toBeHashed, *aj)
 					toBeHashed = append(toBeHashed, *bj)
 
-					checkB := isInRange(cj)
-					checkC := isInRange(vj)
-
-					if !checkB || !checkC {
-						fmt.Println("we fucked the proof up")
-					}
+					verify("(5.B) ...", mod.IsInRange(cj))
+					verify("(5.C) ...", mod.IsInRange(vj))
 				}
+
 				c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, toBeHashed...)
-				checkD := c.Cmp(computedC) == 0 // checking if c is computed correct
 
-				if !checkAOne {
-					fmt.Println("we fucked up a 1")
-				}
-
-				if !checkATwo {
-					fmt.Println("we fucked up a 2")
-				}
-
-				if !checkD {
-					fmt.Println("we fucked up d")
-					fmt.Println(c.Text(16))
-					fmt.Println(computedC.Text(16))
-				}
+				verify("(5.A) alpha is in Z_p^r", mod.IsValidResidue(alpha))
+				verify("(5.A) beta is in Z_p^r", mod.IsValidResidue(beta))
+				verify("(5.D) challenge is computed correctly", c.Cmp(computedC) == 0)
 			}
 		}
 	}

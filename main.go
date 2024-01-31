@@ -6,6 +6,7 @@ import (
 	"electionguard-sandbox-go/verification"
 	"flag"
 	"fmt"
+	"os"
 )
 
 func main() {
@@ -13,6 +14,11 @@ func main() {
 	pathPtr := flag.String("path", "", "path to manifest file used to generate ballots.")
 	amountOfBallotsPtr := flag.Int("number", 1, "amount of ballots to generate and verify.")
 	flag.Parse()
+
+	// Path to manifest should be set
+	if *pathPtr == "" {
+		os.Exit(1)
+	}
 
 	// Loading manifest and generating ballots based on manifest
 	manifest := generation.LoadManifest(*pathPtr)
@@ -23,5 +29,5 @@ func main() {
 	verification.VerifyStep5(ballots, electionPublicKey)
 	verification.VerifyStep6(ballots, electionPublicKey)
 
-	fmt.Println("We will see you in person.")
+	fmt.Println("Generation and verification of ballots finished successfully.")
 }

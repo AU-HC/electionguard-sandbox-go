@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"electionguard-sandbox-go/models"
+	mod "electionguard-sandbox-go/modular_arithmetic"
 	"encoding/binary"
 	"math/big"
 	"reflect"
@@ -72,8 +73,6 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 		mac.Write(toBeHashed)
 	}
 
-	// TODO: Should you also take mod q of the result
 	hash := new(big.Int).SetBytes(mac.Sum(nil))
-
-	return hash
+	return mod.ModQ(hash)
 }

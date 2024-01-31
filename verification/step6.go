@@ -4,7 +4,7 @@ import (
 	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
-	"fmt"
+	mod "electionguard-sandbox-go/modular_arithmetic"
 	"math/big"
 )
 
@@ -20,33 +20,23 @@ func VerifyStep6(ballots []models.Ballot, publicKey crypto.PublicKey) {
 			computedC := big.NewInt(0)
 			for j, proof := range contest.Proof.Proofs {
 				cj := proof.Challenge
-				computedC = addQ(computedC, &cj)
+				computedC = mod.AddQ(computedC, &cj)
 
 				vj := proof.ProofResponse
-				wj := subQ(&vj, mulQ(big.NewInt(int64(j)), &cj))
+				wj := mod.SubQ(&vj, mod.MulQ(big.NewInt(int64(j)), &cj))
 
-				aj := mulP(powP(g, &vj), powP(alphaHat, &cj))
-				bj := mulP(powP(k, wj), powP(betaHat, &cj))
+				aj := mod.MulP(mod.PowP(g, &vj), mod.PowP(alphaHat, &cj))
+				bj := mod.MulP(mod.PowP(k, wj), mod.PowP(betaHat, &cj))
 
 				toBeHashed = append(toBeHashed, *aj)
 				toBeHashed = append(toBeHashed, *bj)
 				// TODO: Check A is already done in step5?
 
-				checkB := isInRange(cj)
-				checkC := isInRange(vj)
-
-				if !checkB || !checkC {
-					fmt.Println("we fucked the proof up")
-				}
+				verify("(6.B) ...", mod.IsInRange(cj))
+				verify("(6.C) ...", mod.IsInRange(vj))
 			}
 			c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, toBeHashed...)
-			checkD := c.Cmp(computedC) == 0 // checking if c is computed correct
-
-			if !checkD {
-				fmt.Println("we fucked up d")
-				fmt.Println(c.Text(16))
-				fmt.Println(computedC.Text(16))
-			}
+			verify("(5.D) ...", c.Cmp(computedC) == 0)
 		}
 	}
 }
@@ -56,8 +46,8 @@ func computeContestTotal(ballotSelections []models.BallotSelection) (*big.Int, *
 	betaHat := big.NewInt(1)
 
 	for _, selection := range ballotSelections {
-		alphaHat = mulP(alphaHat, &selection.Ciphertext.Pad)
-		betaHat = mulP(betaHat, &selection.Ciphertext.Data)
+		alphaHat = mod.MulP(alphaHat, &selection.Ciphertext.Pad)
+		betaHat = mod.MulP(betaHat, &selection.Ciphertext.Data)
 	}
 
 	return alphaHat, betaHat

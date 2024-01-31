@@ -1,9 +1,9 @@
 package generation
 
 import (
-	"electionguard-sandbox-go/constants"
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
+	mod "electionguard-sandbox-go/modular_arithmetic"
 	"math/big"
 	"math/rand"
 )
@@ -57,9 +57,9 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 		alpha, beta := crypto.Encrypt(publicKey, m, epsilon)
 
 		// Calculating the product of all encryptions / sum of nonces
-		alphaHat = mulP(alphaHat, alpha)
-		betaHat = mulP(betaHat, beta)
-		epsilonHat = addQ(epsilonHat, epsilon)
+		alphaHat = mod.MulP(alphaHat, alpha)
+		betaHat = mod.MulP(betaHat, beta)
+		epsilonHat = mod.AddQ(epsilonHat, epsilon)
 
 		// Generating range proof based on El Gamal encryption, the vote, and the selection limit
 		rangeProof := generateRangeProofFromEncryptionAndNonce(*alpha, *beta, *epsilon, publicKey, selectionLimit, m)
@@ -116,18 +116,4 @@ func getRandomNumbersModQ(n int) []*big.Int {
 	}
 
 	return nonces
-}
-
-func mulP(a, b *big.Int) *big.Int {
-	var result big.Int
-	p := constants.GetP()
-
-	modOfA := a.Mod(a, p)
-	modOfB := b.Mod(b, p)
-
-	// Multiply the two numbers mod p
-	result.Mul(modOfA, modOfB)
-	result.Mod(&result, p)
-
-	return &result
 }
