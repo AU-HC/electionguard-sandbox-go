@@ -7,16 +7,13 @@
       "selections": [
         {
           "name": "selection1-1"
-        },
-        {
-          "name": "selection1-2"
         }
       ]
     },
     {
       "name": "contest2",
-      "contestSelectionLimit": 6,
-      "selectionLimit": 4,
+      "contestSelectionLimit": 2,
+      "selectionLimit": 1,
       "selections": [
         {
           "name": "selection2-1"
@@ -25,10 +22,68 @@
           "name": "selection2-2"
         },
         {
-          "name": "selection2-2"
+          "name": "selection2-3"
         },
         {
-          "name": "selection2-2"
+          "name": "selection2-4"
+        },
+        {
+          "name": "selection2-5"
+        }
+      ]
+    },
+    {
+      "name": "contest3",
+      "contestSelectionLimit": 2,
+      "selectionLimit": 1,
+      "selections": [
+        {
+          "name": "selection3-1"
+        },
+        {
+          "name": "selection3-2"
+        }
+      ]
+    },
+    {
+      "name": "contest4",
+      "contestSelectionLimit": 2,
+      "selectionLimit": 1,
+      "selections": [
+        {
+          "name": "selection4-1"
+        },
+        {
+          "name": "selection4-2"
+        },
+        {
+          "name": "selection4-3"
+        }
+      ]
+    },
+    {
+      "name": "contest5",
+      "contestSelectionLimit": 2,
+      "selectionLimit": 1,
+      "selections": [
+        {
+          "name": "selection5-1"
+        },
+        {
+          "name": "selection5-2"
+        }
+      ]
+    },
+    {
+      "name": "contest6",
+      "contestSelectionLimit": 1,
+      "selectionLimit": 1,
+      "selections": [
+        {
+          "name": "selection6-1"
+        },
+        {
+          "name": "selection6-2"
         }
       ]
     }

@@ -6,19 +6,17 @@ import (
 	"electionguard-sandbox-go/models"
 	mod "electionguard-sandbox-go/modular_arithmetic"
 	"encoding/binary"
-	"math/big"
 	"reflect"
 )
 
 var nilType = reflect.TypeOf(nil)
 var stringType = reflect.TypeOf("")
 var intType = reflect.TypeOf(1)
-var bigIntType = reflect.TypeOf(big.Int{})
-var bigIntPointerType = reflect.TypeOf(&big.Int{})
+var bigIntType = reflect.TypeOf(models.BigInt{})
+var bigIntPointerType = reflect.TypeOf(&models.BigInt{})
 var fileType = reflect.TypeOf(([]byte)(nil))
-var chaumPedersenProofType = reflect.TypeOf(models.ChaumPedersenProof{})
 
-func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
+func HMAC(key models.BigInt, domainSeparator byte, a ...interface{}) *models.BigInt {
 	mac := hmac.New(sha256.New, key.Bytes())
 
 	// Add the domain separator first
@@ -47,11 +45,11 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 			toBeHashed = append(pad, []byte(xString)...)
 
 		case bigIntType:
-			bigInt := x.(big.Int)
+			bigInt := x.(models.BigInt)
 			toBeHashed = bigInt.Bytes()
 
 		case bigIntPointerType:
-			bigIntPointer := x.(*big.Int)
+			bigIntPointer := x.(*models.BigInt)
 			toBeHashed = bigIntPointer.Bytes()
 
 		case fileType:
@@ -61,11 +59,6 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 			binary.BigEndian.PutUint32(pad, uint32(len(file)))
 			toBeHashed = append(pad, file...)
 
-		case chaumPedersenProofType:
-			chaumPedersenProof := x.(models.ChaumPedersenProof)
-			mac.Write(chaumPedersenProof.ProofPad.Bytes())
-			toBeHashed = chaumPedersenProof.ProofData.Bytes()
-
 		default:
 			panic("unknown type for hmac")
 		}
@@ -73,6 +66,6 @@ func HMAC(key big.Int, domainSeparator byte, a ...interface{}) *big.Int {
 		mac.Write(toBeHashed)
 	}
 
-	hash := new(big.Int).SetBytes(mac.Sum(nil))
+	hash := models.MakeBigIntFromByteArray(mac.Sum(nil))
 	return mod.ModQ(hash)
 }

@@ -3,18 +3,18 @@ package crypto
 import (
 	"crypto/rand"
 	"electionguard-sandbox-go/constants"
-	"math/big"
+	"electionguard-sandbox-go/models"
 )
 
 // taken from: https://github.com/AU-HC/elliptic-curve-benchmark-go/blob/master/random/random.go
 
-func GenerateRandomModQ() *big.Int {
+func GenerateRandomModQ() *models.BigInt {
 	q := constants.GetQ()
-	number, err := rand.Int(rand.Reader, q)
+	number, err := rand.Int(rand.Reader, &q.Int)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return number
+	return &models.BigInt{Int: *number}
 }

@@ -4,7 +4,6 @@ import (
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
 	mod "electionguard-sandbox-go/modular_arithmetic"
-	"math/big"
 	"math/rand"
 )
 
@@ -46,9 +45,9 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 	encryptionNonces := getRandomNumbersModQ(amountOfSelections)
 	encryptionValues := getRandomVotes(amountOfSelections, selectionLimit, contestSelectionLimit)
 
-	alphaHat := big.NewInt(1)
-	betaHat := big.NewInt(1)
-	epsilonHat := big.NewInt(0)
+	alphaHat := models.IntToBigInt(1)
+	betaHat := models.IntToBigInt(1)
+	epsilonHat := models.IntToBigInt(0)
 
 	for k, selection := range contest.Selections {
 		// Get (message, nonce) and generate El Gamal encryption
@@ -57,17 +56,17 @@ func generateBallotContest(contest models.Contest, publicKey crypto.PublicKey) m
 		alpha, beta := crypto.Encrypt(publicKey, m, epsilon)
 
 		// Calculating the product of all encryptions / sum of nonces
-		alphaHat = mod.MulP(alphaHat, alpha)
-		betaHat = mod.MulP(betaHat, beta)
+		alphaHat = mod.MulP(alphaHat, &alpha)
+		betaHat = mod.MulP(betaHat, &beta)
 		epsilonHat = mod.AddQ(epsilonHat, epsilon)
 
 		// Generating range proof based on El Gamal encryption, the vote, and the selection limit
-		rangeProof := generateRangeProofFromEncryptionAndNonce(*alpha, *beta, *epsilon, publicKey, selectionLimit, m)
+		rangeProof := generateRangeProofFromEncryptionAndNonce(alpha, beta, *epsilon, publicKey, selectionLimit, m)
 
 		// Creating ballot selection
 		ballotSelection := models.BallotSelection{
 			ObjectId:   selection.Name,
-			Ciphertext: models.Ciphertext{Pad: *alpha, Data: *beta},
+			Ciphertext: models.Ciphertext{Pad: alpha, Data: beta},
 			Proof:      rangeProof,
 		}
 
@@ -108,8 +107,8 @@ func getRandomVotes(amountOfSelections, selectionLimit, contestSelectionLimit in
 	return votes
 }
 
-func getRandomNumbersModQ(n int) []*big.Int {
-	nonces := make([]*big.Int, n)
+func getRandomNumbersModQ(n int) []*models.BigInt {
+	nonces := make([]*models.BigInt, n)
 
 	for i := 0; i < n; i++ {
 		nonces[i] = crypto.GenerateRandomModQ()

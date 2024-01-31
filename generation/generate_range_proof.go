@@ -5,10 +5,10 @@ import (
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
 	mod "electionguard-sandbox-go/modular_arithmetic"
-	"math/big"
+	"fmt"
 )
 
-func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publicKey crypto.PublicKey, selectionLimit, m int) models.RangeProof {
+func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon models.BigInt, publicKey crypto.PublicKey, selectionLimit, m int) models.RangeProof {
 	// Generate random challenges
 	cpProofs := make([]models.ChaumPedersenProof, selectionLimit+1) // need R+1 proofs
 	challenges := getRandomNumbersModQ(selectionLimit + 1)          // need R+1 challenges
@@ -36,8 +36,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 
 	// Calculating "true" claim proof
 	c := crypto.HMAC(constants.GetExtendedBaseHash(), 0x21, calculateHashArray(publicKey, alpha, beta, cpProofs)...)
-	cl := new(big.Int)
-	cl = cl.Set(c)
+	cl := models.MakeBigIntFromByteArray(c.Bytes())
 
 	for j, cpProof := range cpProofs {
 		if m != j {
@@ -45,9 +44,7 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 		}
 	}
 
-	var v *big.Int
-	v = mod.SubQ(commitments[m], mod.MulQ(&epsilon, cl))
-
+	v := mod.SubQ(commitments[m], mod.MulQ(&epsilon, cl))
 	cpProofs[m] = models.ChaumPedersenProof{
 		Challenge:     *cl,
 		ProofPad:      cpProofs[m].ProofPad,
@@ -65,16 +62,16 @@ func generateRangeProofFromEncryptionAndNonce(alpha, beta, epsilon big.Int, publ
 	return rangeProof
 }
 
-func calculateBCommitment(m, j int, publicKey crypto.PublicKey, u, c big.Int) *big.Int {
+func calculateBCommitment(m, j int, publicKey crypto.PublicKey, u, c models.BigInt) *models.BigInt {
 	if m == j {
 		return mod.PowP(publicKey.K, &u)
 	} else {
-		t := mod.AddQ(&u, mod.MulQ(big.NewInt(int64(m-j)), &c))
+		t := mod.AddQ(&u, mod.MulQ(models.MakeBigIntFromString(fmt.Sprintf("%d", m-j), 10), &c))
 		return mod.PowP(publicKey.K, t)
 	}
 }
 
-func calculateHashArray(publicKey crypto.PublicKey, alpha, beta big.Int, cpProofs []models.ChaumPedersenProof) []interface{} {
+func calculateHashArray(publicKey crypto.PublicKey, alpha, beta models.BigInt, cpProofs []models.ChaumPedersenProof) []interface{} {
 	hashArray := []interface{}{publicKey.K, alpha, beta}
 	for i := 0; i < len(cpProofs); i++ {
 		hashArray = append(hashArray, cpProofs[i].ProofPad)

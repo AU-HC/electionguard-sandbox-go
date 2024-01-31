@@ -1,16 +1,13 @@
 package models
 
-import "math/big"
-
 type Ballot struct {
 	ObjectId string
-	Code     string
 	Contests []BallotContest
 }
 
 type BallotContest struct {
 	ObjectId         string
-	CryptoHash       big.Int
+	CryptoHash       BigInt
 	BallotSelections []BallotSelection
 	Proof            RangeProof
 }
@@ -22,19 +19,19 @@ type BallotSelection struct {
 }
 
 type RangeProof struct {
-	Challenge  big.Int
+	Challenge  BigInt
 	Proofs     []ChaumPedersenProof
 	RangeLimit int
 }
 
 type ChaumPedersenProof struct {
-	Challenge     big.Int
-	ProofPad      big.Int
-	ProofData     big.Int
-	ProofResponse big.Int
+	Challenge     BigInt
+	ProofPad      BigInt
+	ProofData     BigInt
+	ProofResponse BigInt
 }
 
 type Ciphertext struct {
-	Pad  big.Int
-	Data big.Int
+	Pad  BigInt
+	Data BigInt
 }
