@@ -4,6 +4,7 @@ import (
 	"electionguard-sandbox-go/crypto"
 	"electionguard-sandbox-go/models"
 	mod "electionguard-sandbox-go/modular_arithmetic"
+	"fmt"
 	"math/rand"
 )
 
@@ -13,6 +14,10 @@ func GenerateBallots(manifest models.Manifest, amountOfBallots int, publicKey cr
 	for i := 0; i < amountOfBallots; i++ {
 		ballot := generateBallot(manifest, publicKey)
 		ballots[i] = ballot
+
+		if (i+1)%50 == 0 {
+			fmt.Printf("Generated %d ballots.\n", i+1)
+		}
 	}
 
 	return ballots
