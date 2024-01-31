@@ -24,7 +24,8 @@ $ go run main.go -p="path/to/manifest/"
 It's important to note that the `-p` flag must be set, as it specifies the manifest path which specifies the contest, contest selection limit, selections, and selection limit.
 
 The verifier also has alternate options which can be set, using the following flags:
-- `-number` of type `int`: Specifies the amount of ballots generated and verified
+- `-number` of type `int`: Specifies the amount of ballots generated and verified.
+- `-output` of type `bool`: Specifies if the ballots should be saved as json in the `ballots/` directory.
 
 For example to generate and verify 10 ballots using the `manifest.json` file, one of the following commands can be executed:
 ```
