@@ -26,8 +26,8 @@ type RangeProof struct {
 
 type ChaumPedersenProof struct {
 	Challenge     BigInt
-	ProofPad      BigInt
-	ProofData     BigInt
+	ProofPad      BigInt `json:"-"`
+	ProofData     BigInt `json:"-"`
 	ProofResponse BigInt
 }
 
